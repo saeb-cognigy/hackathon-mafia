@@ -1,7 +1,7 @@
 let mediaRecorder;
 let audioChunks = [];
 console.log("window.location.host", window.location.host);
-const ws = new WebSocket(`wss://${window.location.host}`);
+const ws = new WebSocket(`ws://${window.location.host}`);
 
 const startButton = document.getElementById('startButton');
 const stopButton = document.getElementById('stopButton');
