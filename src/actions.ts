@@ -1,30 +1,47 @@
 import { Action, Character } from './abstract';
 import { Game } from './game';
 import { ModeratorCharacter, DetectiveCharacter, MafiaCharacter, DoctorCharacter, VillagerCharacter } from './characters';
+import { dayTime, DayTime } from './variables';
 
 export class StartGameAction extends Action {
     constructor() {
-        // Define action conditions
         const conditions = [
             // Only moderator can start the game
-            (character?: Character): boolean => {
+            () => {
+                const { character } = this.context;
                 if (!character) {
                     return false;
                 }
                 return character instanceof ModeratorCharacter;
+            },
+            // Game hasn't started yet
+            () => {
+                const { game } = this.context;
+                return !game.isGameStarted();
+            },
+            // Minimum players required
+            () => {
+                const { game } = this.context as { game: Game };
+                return game.getCharactersCount() >= game.getMinimumCharacters();
+            },
+            // All characters must be valid (have roles assigned)
+            () => {
+                const { game } = this.context as { game: Game };
+                const characters = game.getCharacters();
+                return characters.every(char => char.is_valid);
             }
         ];
 
-        // Initialize the action
         super(
-            "Start Game",          // Action name
-            "Begins the game with current players",  // Action description
-            conditions             // Action conditions
+            "Start Game",
+            "Begins the game with current players",
+            conditions
         );
     }
 
-    protected performAction(game: Game): void {
-        // TODO: Implement actual game start logic
+    protected performAction(): void {
+        const { game } = this.context;
+        game.setGameStarted(true);
         console.log("Game is starting...");
     }
 }
@@ -33,22 +50,40 @@ export class AssignRolesAction extends Action {
     constructor() {
         const conditions = [
             // Only moderator can assign roles
-            (character?: Character): boolean => {
+            () => {
+                const { character } = this.context;
                 if (!character) {
                     return false;
                 }
                 return character instanceof ModeratorCharacter;
+            },
+            // Game hasn't started yet
+            () => {
+                const { game } = this.context;
+                return !game.isGameStarted();
+            },
+            // Minimum 4 players required
+            () => {
+                const { game } = this.context as { game: Game };
+                return game.getCharactersCount() >= game.getMinimumCharacters();
+            },
+            () => {
+                const { game } = this.context as { game: Game };
+                const characters = game.getCharacters();
+                return characters.some((char: Character) => !char.is_valid);
             }
+
         ];
 
         super(
-            "Assign Roles",          // Action name
-            "Randomly assign roles to all players",  // Action description
-            conditions             // Action conditions
+            "Assign Roles",
+            "Randomly assign roles to all players",
+            conditions
         );
     }
 
-    protected performAction(game: Game): void {
+    protected performAction(): void {
+        const { game } = this.context as { game: Game };
         const characters = game.getCharacters();
         const availableCharacters = characters.filter(char => !(char instanceof ModeratorCharacter));
         
@@ -56,11 +91,9 @@ export class AssignRolesAction extends Action {
             throw new Error("Not enough players to assign roles (minimum 4 required)");
         }
 
-        // Define role distribution
         const roleDistribution = this.getRoleDistribution(availableCharacters.length);
         const roles = this.shuffleRoles(roleDistribution);
 
-        // Assign roles to players
         availableCharacters.forEach((character, index) => {
             game.replaceCharacter(character.getId(), roles[index]);
         });
@@ -93,5 +126,36 @@ export class AssignRolesAction extends Action {
         }
         return roles;
     }
+}
 
+export class EnterNightAction extends Action {
+    constructor() {
+        const conditions = [
+            // Only moderator can transition to night
+            () => {
+                const { character } = this.context;
+                if (!character) {
+                    return false;
+                }
+                return character instanceof ModeratorCharacter;
+            },
+            // Can only enter night if it's currently day
+            () => {
+                const { game } = this.context;
+                return (game.getDayTime() === DayTime.DAY) && game.isGameStarted();
+            }
+        ];
+
+        super(
+            "Enter Night",
+            "Transition the game to night phase",
+            conditions
+        );
+    }
+
+    protected performAction(): void {
+        const { game } = this.context;
+        game.setDayTime(DayTime.NIGHT);
+        console.log("The night has begun...");
+    }
 } 

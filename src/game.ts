@@ -6,11 +6,15 @@ class Game {
     private moderator: Character | null;
     private characters: Character[];
     private dayTime: DayTime;
+    private gameStarted: boolean;
+    private minimumCharacters: number;
 
-    constructor() {
+    constructor(minimumCharacters: number = 4) {  // Default to 4 if not specified
         this.moderator = null;
         this.characters = [];
-        this.dayTime = dayTime;
+        this.dayTime = DayTime.DAY;
+        this.gameStarted = false;
+        this.minimumCharacters = minimumCharacters;
     }
 
     setModerator(moderator: ModeratorCharacter): void {
@@ -28,6 +32,9 @@ class Game {
     // Helper methods to manage game state
     addCharacter(character: Character): void {
         this.characters.push(character);
+        for (const action of character.getActions()) {
+            action.context.game = this;
+        }
     }
 
     setDayTime(newTime: DayTime): void {
@@ -112,6 +119,22 @@ class Game {
 
         return character;
     }
+
+    isGameStarted(): boolean {
+        return this.gameStarted;
+    }
+
+    setGameStarted(started: boolean): void {
+        this.gameStarted = started;
+    }
+
+    getMinimumCharacters(): number {
+        return this.minimumCharacters;
+    }
+
+    getCharactersCount(): number {
+        return this.characters.filter(char => !(char instanceof ModeratorCharacter)).length;
+    }   
 }
 
 export { Game }; 

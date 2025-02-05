@@ -34,6 +34,11 @@ const ROLE_STYLES = {
     }
 };
 
+// Add at the start with other constants
+const dayTimeInfo = document.createElement('div');
+dayTimeInfo.id = 'dayTimeInfo';
+document.body.insertBefore(dayTimeInfo, document.body.firstChild);
+
 startButton.onclick = async () => {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -73,6 +78,13 @@ function updateActions(actions) {
         const button = document.createElement('button');
         button.textContent = action.name;
         button.title = action.description;
+        
+        // Disable button if action is not callable
+        if (!action.is_callable) {
+            button.disabled = true;
+            button.title += ' (Not available)';
+        }
+        
         button.onclick = () => {
             ws.send(JSON.stringify({
                 type: 'action_request',
@@ -88,6 +100,20 @@ ws.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         console.log(data);
         
+        if (data.type === 'game_info') {
+            const timeStyle = data.data.time === 'DAY'            
+                ? { color: '#FFD700', icon: '🌞' }  // Sun for day
+                : { color: '#4A4A9E', icon: '🌙' }; // Moon for night
+            
+            dayTimeInfo.style.borderLeftColor = timeStyle.color;
+            dayTimeInfo.innerHTML = `
+                <span style="color: ${timeStyle.color}">
+                    ${timeStyle.icon} ${data.data.time}
+                </span>
+            `;
+            return;
+        }
+
         if (data.type === 'character_info') {
             const { character } = data;
             const style = ROLE_STYLES[character.type];

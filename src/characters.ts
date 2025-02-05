@@ -1,12 +1,13 @@
 import { Character } from './abstract';
-import { StartGameAction, AssignRolesAction } from './actions';
+import { StartGameAction, AssignRolesAction, EnterNightAction } from './actions';
 
 export class ModeratorCharacter extends Character {
     constructor(name: string) {
         super(name);
-        this.is_valid = true;
+        this._is_valid = true;
         this.addAction(new StartGameAction());
         this.addAction(new AssignRolesAction());
+        this.addAction(new EnterNightAction());
     }
 
     take_action(): void {
@@ -17,7 +18,7 @@ export class ModeratorCharacter extends Character {
 export class DetectiveCharacter extends Character {
     constructor(name: string) {
         super(name);
-        this.is_valid = true;
+        this._is_valid = true;
         // TODO: Add detective-specific actions
     }
 
@@ -29,7 +30,7 @@ export class DetectiveCharacter extends Character {
 export class MafiaCharacter extends Character {
     constructor(name: string) {
         super(name);
-        this.is_valid = true;
+        this._is_valid = true;
         // TODO: Add mafia-specific actions
     }
 
@@ -41,7 +42,7 @@ export class MafiaCharacter extends Character {
 export class DoctorCharacter extends Character {
     constructor(name: string) {
         super(name);
-        this.is_valid = true;
+        this._is_valid = true;
         // TODO: Add doctor-specific actions
     }
 
@@ -53,7 +54,7 @@ export class DoctorCharacter extends Character {
 export class VillagerCharacter extends Character {
     constructor(name: string) {
         super(name);
-        this.is_valid = true;
+        this._is_valid = true;
         // TODO: Add villager-specific actions
     }
 
