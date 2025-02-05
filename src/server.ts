@@ -29,27 +29,14 @@ wss.on('connection', (ws) => {
     if (!game.hasModerator()) {
         try {
             character = game.createModerator();
-            ws.send(JSON.stringify({
-                type: 'character_info',
-                character: {
-                    id: character.getId(),
-                    name: 'GameMaster',
-                    type: 'Moderator'
-                }
-            }));
+            ws.send(character.toJSON());
         } catch (error) {
             console.error('Failed to set moderator:', error);
         }
     } else {
         character = game.createPlaceholderCharacter();
-        ws.send(JSON.stringify({
-            type: 'character_info',
-            character: {
-                id: character.getId(),
-                name: 'NewPlayer',
-                type: 'Placeholder'
-            }
-        }));
+        console.log(character.toJSON());
+        ws.send(character.toJSON());
         console.log(`Added client ${character?.getId()}`);
     }
 

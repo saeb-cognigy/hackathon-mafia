@@ -12,9 +12,25 @@ const ROLE_STYLES = {
         color: '#4CAF50',
         label: 'Moderator'
     },
-    'Placeholder': {
+    'Detective': {
+        color: '#9C27B0',
+        label: 'Detective'
+    },
+    'Mafia': {
+        color: '#F44336',
+        label: 'Mafia'
+    },
+    'Doctor': {
         color: '#2196F3',
-        label: 'Player'
+        label: 'Doctor'
+    },
+    'Villager': {
+        color: '#FF9800',
+        label: 'Villager'
+    },
+    'PlaceHolder': {
+        color: '#9E9E9E',
+        label: 'Player (Unassigned)'
     }
 };
 
@@ -47,8 +63,10 @@ stopButton.onclick = () => {
 };
 
 ws.onmessage = async (event) => {
+
     try {
         const data = JSON.parse(event.data);
+        console.log(data)
         if (data.type === 'character_info') {
             const { character } = data;
             const style = ROLE_STYLES[character.type];
@@ -61,6 +79,7 @@ ws.onmessage = async (event) => {
             return;
         }
     } catch (e) {
+        console.error("Error parsing message", e);
         // If parsing fails, treat it as audio data
         const blob = event.data;
         const audio = new Audio(URL.createObjectURL(blob));
