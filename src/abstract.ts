@@ -25,6 +25,10 @@ abstract class Character {
         return this.id;
     }
 
+    getName(): string {
+        return this.name;
+    }
+
     addAction(action: Action): void {
         this.allowed_actions.push(action);
     }

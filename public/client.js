@@ -62,11 +62,32 @@ stopButton.onclick = () => {
     stopButton.disabled = true;
 };
 
-ws.onmessage = async (event) => {
+// Add action handling
+const actionsList = document.createElement('div');
+actionsList.className = 'actions-list';
+document.body.appendChild(actionsList);
 
+function updateActions(actions) {
+    actionsList.innerHTML = '';
+    actions.forEach(action => {
+        const button = document.createElement('button');
+        button.textContent = action.name;
+        button.title = action.description;
+        button.onclick = () => {
+            ws.send(JSON.stringify({
+                type: 'action_request',
+                action: action.name
+            }));
+        };
+        actionsList.appendChild(button);
+    });
+}
+
+ws.onmessage = async (event) => {
     try {
         const data = JSON.parse(event.data);
-        console.log(data)
+        console.log(data);
+        
         if (data.type === 'character_info') {
             const { character } = data;
             const style = ROLE_STYLES[character.type];
@@ -76,6 +97,16 @@ ws.onmessage = async (event) => {
                 <strong style="color: ${style.color}">${style.label}</strong><br>
                 ${character.name}
             `;
+
+            // Update available actions
+            if (character.actions) {
+                updateActions(character.actions);
+            }
+            return;
+        }
+
+        if (data.type === 'action_response') {
+            console.log(data.message);
             return;
         }
     } catch (e) {

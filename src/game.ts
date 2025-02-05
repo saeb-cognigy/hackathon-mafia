@@ -1,5 +1,5 @@
 import { Character } from './abstract';
-import { ModeratorCharacter, PlaceHolderCharacter } from './characters';
+import { ModeratorCharacter, PlaceHolderCharacter, DetectiveCharacter, MafiaCharacter, DoctorCharacter, VillagerCharacter } from './characters';
 import { DayTime, dayTime } from './variables';
 
 class Game {
@@ -70,6 +70,47 @@ class Game {
         if (this.moderator && this.moderator.getId() === characterId) {
             this.moderator = null;
         }
+    }
+
+    replaceCharacter(oldCharacterId: string, newRole: string): void {
+        const index = this.characters.findIndex(char => char.getId() === oldCharacterId);
+        if (index === -1) {
+            throw new Error("Character not found");
+        }
+
+        const oldCharacter = this.characters[index];
+        const newCharacter = this.createCharacterByRole(newRole, oldCharacter.getName(), oldCharacterId);
+        this.characters[index] = newCharacter;
+    }
+
+    private createCharacterByRole(role: string, name: string, id: string): Character {
+        let character: Character;
+        
+        switch (role) {
+            case 'Detective':
+                character = new DetectiveCharacter(name);
+                break;
+            case 'Doctor':
+                character = new DoctorCharacter(name);
+                break;
+            case 'Mafia':
+                character = new MafiaCharacter(name);
+                break;
+            case 'Villager':
+                character = new VillagerCharacter(name);
+                break;
+            default:
+                throw new Error(`Unknown role: ${role}`);
+        }
+
+        // Override the auto-generated ID with the old ID
+        Object.defineProperty(character, 'id', {
+            value: id,
+            writable: false,
+            configurable: true
+        });
+
+        return character;
     }
 }
 

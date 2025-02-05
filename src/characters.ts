@@ -1,11 +1,12 @@
 import { Character } from './abstract';
-import { StartGameAction } from './actions';
+import { StartGameAction, AssignRolesAction } from './actions';
 
 export class ModeratorCharacter extends Character {
     constructor(name: string) {
         super(name);
         this.is_valid = true;
         this.addAction(new StartGameAction());
+        this.addAction(new AssignRolesAction());
     }
 
     take_action(): void {
