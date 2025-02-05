@@ -5,6 +5,18 @@ const ws = new WebSocket(`ws://${window.location.host}`);
 
 const startButton = document.getElementById('startButton');
 const stopButton = document.getElementById('stopButton');
+const characterInfo = document.getElementById('characterInfo');
+
+const ROLE_STYLES = {
+    'Moderator': {
+        color: '#4CAF50',
+        label: 'Moderator'
+    },
+    'Placeholder': {
+        color: '#2196F3',
+        label: 'Player'
+    }
+};
 
 startButton.onclick = async () => {
     try {
@@ -35,7 +47,23 @@ stopButton.onclick = () => {
 };
 
 ws.onmessage = async (event) => {
-    const blob = event.data;
-    const audio = new Audio(URL.createObjectURL(blob));
-    await audio.play();
+    try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'character_info') {
+            const { character } = data;
+            const style = ROLE_STYLES[character.type];
+            
+            characterInfo.style.borderLeftColor = style.color;
+            characterInfo.innerHTML = `
+                <strong style="color: ${style.color}">${style.label}</strong><br>
+                ${character.name}
+            `;
+            return;
+        }
+    } catch (e) {
+        // If parsing fails, treat it as audio data
+        const blob = event.data;
+        const audio = new Audio(URL.createObjectURL(blob));
+        await audio.play();
+    }
 };

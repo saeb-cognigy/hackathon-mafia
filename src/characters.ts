@@ -6,4 +6,24 @@ class Doctor extends Character {
     }
 }
 
-export { Doctor }; 
+class ModeratorCharacter extends Character {
+    constructor(name: string) {
+        super(name);
+    }
+
+    take_action(): void {
+        console.log(`Moderator ${this.name} (ID: ${this.id}) is monitoring the game`);
+    }
+}
+
+class PlaceHolderCharacter extends Character {
+    constructor(name: string) {
+        super(name);
+    }
+
+    take_action(): void {
+        throw new Error("You can not run take_action()");
+    }
+}
+
+export { Doctor, ModeratorCharacter, PlaceHolderCharacter }; 

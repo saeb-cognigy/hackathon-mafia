@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 class ActionNotPossibleError extends Error {
     constructor(actionName: string, reason: string) {
         super(`Cannot execute ${actionName}: ${reason}`);
@@ -7,9 +9,15 @@ class ActionNotPossibleError extends Error {
 
 abstract class Character {
     protected name: string;
+    protected id: string;
 
     constructor(name: string) {
         this.name = name;
+        this.id = crypto.randomUUID();  // Auto-generate unique ID on construction
+    }
+
+    getId(): string {
+        return this.id;
     }
 
     abstract take_action(): void;
