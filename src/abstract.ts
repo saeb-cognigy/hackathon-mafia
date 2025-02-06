@@ -9,13 +9,15 @@ class ActionNotPossibleError extends Error {
 }
 
 abstract class Character {
+    protected label: string;
     protected name: string;
     protected id: string;
     protected allowed_actions: Action[];
     protected _is_valid: boolean;  // Rename to _is_valid
 
-    constructor(name: string) {
-        this.name = name;
+    constructor(label: string, name?: string) {
+        this.label = label;
+        this.name = name || `Player${Math.floor(Math.random() * 1000)}`;  // Default name if not provided
         this.id = crypto.randomUUID();  // Auto-generate unique ID on construction
         this.allowed_actions = [];
         this._is_valid = false;  // Initialize as false
@@ -26,7 +28,7 @@ abstract class Character {
     }
 
     getName(): string {
-        return this.name;
+        return this.label;
     }
 
     addAction(action: Action): void {
@@ -43,6 +45,7 @@ abstract class Character {
             type: 'character_info',
             character: {
                 id: this.id,
+                label: this.label,
                 name: this.name,
                 type: this.constructor.name.replace('Character', ''),
                 is_valid: this.is_valid,
@@ -61,6 +64,10 @@ abstract class Character {
     }
 
     abstract take_action(): void;
+
+    get playerName(): string {
+        return this.name;
+    }
 }
 
 abstract class Action {

@@ -72,7 +72,6 @@ export class AssignRolesAction extends Action {
                 const characters = game.getCharacters();
                 return characters.some((char: Character) => !char.is_valid);
             }
-
         ];
 
         super(

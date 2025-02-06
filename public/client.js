@@ -39,6 +39,12 @@ const dayTimeInfo = document.createElement('div');
 dayTimeInfo.id = 'dayTimeInfo';
 document.body.insertBefore(dayTimeInfo, document.body.firstChild);
 
+const gameState = {
+    time: 'DAY',
+    started: false,
+    playerCount: 0
+};
+
 startButton.onclick = async () => {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -74,17 +80,30 @@ document.body.appendChild(actionsList);
 
 function updateActions(actions) {
     actionsList.innerHTML = '';
-    actions.forEach(action => {
+    
+    const callableActions = actions.filter(action => action.is_callable);
+    const isModerator = characterInfo.querySelector('strong').textContent === 'Moderator';
+    
+    if (callableActions.length === 0) {
+        const message = document.createElement('div');
+        message.className = 'waiting-message';
+        
+        if (isModerator) {
+            message.textContent = gameState.started ? 
+                'Waiting for other players to finish their turn' : 
+                'Waiting for more players to join';
+        } else {
+            message.textContent = 'Please wait for your turn';
+        }
+        
+        actionsList.appendChild(message);
+        return;
+    }
+
+    callableActions.forEach(action => {
         const button = document.createElement('button');
         button.textContent = action.name;
         button.title = action.description;
-        
-        // Disable button if action is not callable
-        if (!action.is_callable) {
-            button.disabled = true;
-            button.title += ' (Not available)';
-        }
-        
         button.onclick = () => {
             ws.send(JSON.stringify({
                 type: 'action_request',
@@ -101,15 +120,22 @@ ws.onmessage = async (event) => {
         console.log(data);
         
         if (data.type === 'game_info') {
-            const timeStyle = data.data.time === 'DAY'            
-                ? { color: '#FFD700', icon: '🌞' }  // Sun for day
-                : { color: '#4A4A9E', icon: '🌙' }; // Moon for night
+            // Update gameState
+            Object.assign(gameState, data.data);
+            
+            const timeStyle = gameState.time === 'DAY'            
+                ? { color: '#FFD700', icon: '🌞' }
+                : { color: '#4A4A9E', icon: '🌙' };
             
             dayTimeInfo.style.borderLeftColor = timeStyle.color;
             dayTimeInfo.innerHTML = `
                 <span style="color: ${timeStyle.color}">
-                    ${timeStyle.icon} ${data.data.time}
+                    ${timeStyle.icon} ${gameState.time}
                 </span>
+                <div class="game-stats">
+                    ${gameState.started ? '🎮 Game in progress' : '⏳ Waiting to start'}<br>
+                    👥 Players: ${gameState.playerCount}
+                </div>
             `;
             return;
         }
