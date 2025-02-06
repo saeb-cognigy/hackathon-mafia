@@ -86,7 +86,7 @@ class Game {
         }
 
         const oldCharacter = this.characters[index];
-        const newCharacter = this.createCharacterByRole(newRole, oldCharacter.getName(), oldCharacterId);
+        const newCharacter = this.createCharacterByRole(newRole, oldCharacter.getLabel(), oldCharacterId);
         this.characters[index] = newCharacter;
     }
 

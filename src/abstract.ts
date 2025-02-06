@@ -14,6 +14,7 @@ abstract class Character {
     protected id: string;
     protected allowed_actions: Action[];
     protected _is_valid: boolean;  // Rename to _is_valid
+    protected turn_taken: boolean;
 
     constructor(label: string, name?: string) {
         this.label = label;
@@ -21,13 +22,14 @@ abstract class Character {
         this.id = crypto.randomUUID();  // Auto-generate unique ID on construction
         this.allowed_actions = [];
         this._is_valid = false;  // Initialize as false
+        this.turn_taken = false;  // Initialize as false
     }
 
     getId(): string {
         return this.id;
     }
 
-    getName(): string {
+    getLabel(): string {
         return this.label;
     }
 
@@ -49,10 +51,12 @@ abstract class Character {
                 name: this.name,
                 type: this.constructor.name.replace('Character', ''),
                 is_valid: this.is_valid,
+                turn_taken: this.turn_taken,
                 actions: this.allowed_actions.map(action => ({
                     name: action.name,
                     description: action.description,
-                    is_callable: action.checkConditions()
+                    is_callable: action.checkConditions(),
+                    required: action.required
                 }))
             }
         }
@@ -68,19 +72,41 @@ abstract class Character {
     get playerName(): string {
         return this.name;
     }
+
+    set playerName(newName: string) {
+        if (!newName || newName.trim().length === 0) {
+            throw new Error("Name cannot be empty");
+        }
+        this.name = newName.trim();
+    }
+
+    get hasTakenTurn(): boolean {
+        return this.turn_taken;
+    }
+
+    set hasTakenTurn(value: boolean) {
+        this.turn_taken = value;
+    }
 }
 
 abstract class Action {
     protected _name: string;
     protected _description: string;
-    protected conditions: ((character?: Character, game?: Game) => boolean)[];
-    public context: Record<string, any>;  // Public context object for action-specific data
+    protected conditions: ((context: Record<string, any>) => boolean)[];
+    protected readonly isRequired: boolean;
+    public context: Record<string, any>;
 
-    constructor(name: string, description: string, conditions: ((character?: Character, game?: Game) => boolean)[]) {
+    constructor(
+        name: string, 
+        description: string, 
+        conditions: ((context: Record<string, any>) => boolean)[],
+        isRequired: boolean = true
+    ) {
         this._name = name;
         this._description = description;
         this.conditions = conditions;
-        this.context = {};  // Initialize empty context
+        this.isRequired = isRequired;
+        this.context = {};
     }
 
     get name(): string {
@@ -91,11 +117,19 @@ abstract class Action {
         return this._description;
     }
 
-    checkConditions(): boolean {
-        return this.conditions.every(condition => condition());
+    get required(): boolean {
+        return this.isRequired;
     }
 
-    execute(): void {
+    checkConditions(): boolean {
+        return this.conditions.every(condition => condition(this.context));
+    }
+
+    execute(input?: Record<string, any>): void {
+        if (input) {
+            this.context.input = input;
+        }
+        
         if (this.checkConditions()) {
             this.performAction();
         } else {

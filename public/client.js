@@ -104,6 +104,12 @@ function updateActions(actions) {
         const button = document.createElement('button');
         button.textContent = action.name;
         button.title = action.description;
+        
+        // Add optional class for styling
+        if (!action.required) {
+            button.classList.add('optional-action');
+        }
+        
         button.onclick = () => {
             ws.send(JSON.stringify({
                 type: 'action_request',
