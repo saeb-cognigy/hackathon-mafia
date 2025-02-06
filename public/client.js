@@ -78,6 +78,19 @@ const actionsList = document.createElement('div');
 actionsList.className = 'actions-list';
 document.body.appendChild(actionsList);
 
+function showNamePrompt() {
+    const newName = prompt("Enter your new name:", "");
+    if (newName !== null && newName.trim() !== "") {
+        ws.send(JSON.stringify({
+            type: 'action_request',
+            action: 'Update Name',
+            input: {
+                name: newName.trim()
+            }
+        }));
+    }
+}
+
 function updateActions(actions) {
     actionsList.innerHTML = '';
     
@@ -105,17 +118,21 @@ function updateActions(actions) {
         button.textContent = action.name;
         button.title = action.description;
         
-        // Add optional class for styling
         if (!action.required) {
             button.classList.add('optional-action');
         }
         
-        button.onclick = () => {
-            ws.send(JSON.stringify({
-                type: 'action_request',
-                action: action.name
-            }));
-        };
+        if (action.name === 'Update Name') {
+            button.onclick = showNamePrompt;
+        } else {
+            button.onclick = () => {
+                ws.send(JSON.stringify({
+                    type: 'action_request',
+                    action: action.name
+                }));
+            };
+        }
+        
         actionsList.appendChild(button);
     });
 }
@@ -165,6 +182,11 @@ ws.onmessage = async (event) => {
 
         if (data.type === 'action_response') {
             console.log(data.message);
+            if (data.success) {
+                alert(data.message);
+            } else {
+                alert('Error: ' + data.message);
+            }
             return;
         }
     } catch (e) {

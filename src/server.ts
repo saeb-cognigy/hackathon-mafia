@@ -74,7 +74,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
     });
 });
 
-function handleActionRequest(request: ActionRequest, character: Character | null, game: Game, ws: ExtWebSocket) {
+function handleActionRequest(request: ActionRequest & { input?: Record<string, any> }, character: Character | null, game: Game, ws: ExtWebSocket) {
     if (!character) {
         ws.send(JSON.stringify({
             type: 'action_response',
@@ -84,7 +84,7 @@ function handleActionRequest(request: ActionRequest, character: Character | null
         return;
     }
 
-    const action = character.getActions().find(a => a['name'] === request.action);
+    const action = character.getActions().find(a => a.name === request.action);
     if (!action) {
         ws.send(JSON.stringify({
             type: 'action_response',
@@ -95,10 +95,7 @@ function handleActionRequest(request: ActionRequest, character: Character | null
     }
 
     try {
-        action.execute();
-        
-        // Update all clients with their new character info
-
+        action.execute(request.input);
         ws.send(JSON.stringify({
             type: 'action_response',
             success: true,
@@ -112,6 +109,7 @@ function handleActionRequest(request: ActionRequest, character: Character | null
             message: error instanceof Error ? error.message : 'Unknown error occurred'
         }));
     }
+    updateAll(game, wss);
 }
 
 function updateAll(game: Game, wss: WebSocketServer) {
